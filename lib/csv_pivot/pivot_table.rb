@@ -29,87 +29,99 @@ module CsvPivot
 
       @method      ||= p
 
-      create_data_store
-      aggregate_data 
-      map_columns_and_rows
-      sort if @sort
-      create_table
+    end
 
-      output_csv if @output_file
+    def work
+      data_store = create_data_store
+      data_store = aggregate_data(data_store)
 
+      column_map, row_map = map_columns_and_rows
+      column_map, row_map = sort(column_map, row_map) if @sort
+
+      create_table(data_store, column_map, row_map)
+
+      output_csv() if @output_file
     end
 
     def pivot
-      @pivoted_table
+      pivoted_table = work
+    end
+
+    def to_csv
+      table = pivot
+      output_csv(table)
     end
 
     def create_data_store
-      @data_store = Hash.new
+      data_store = Hash.new
       CSV.foreach(@input_path, :headers => @headers) do |row|
-        if @data_store.include? "#{row[@pivot_rows]}:#{row[@pivot_columns]}" then
-          @data_store["#{row[@pivot_rows]}:#{row[@pivot_columns]}"][:data].push(row[@pivot_data])
+        if data_store.include? "#{row[@pivot_rows]}:#{row[@pivot_columns]}" then
+          data_store["#{row[@pivot_rows]}:#{row[@pivot_columns]}"][:data].push(row[@pivot_data])
         else
-          @data_store.store("#{row[@pivot_rows]}:#{row[@pivot_columns]}",
+          data_store.store("#{row[@pivot_rows]}:#{row[@pivot_columns]}",
                             {:row    => row[@pivot_rows],
                              :column => row[@pivot_columns],
                              :data   => [row[@pivot_data]]} )
         end
       end
+      data_store
     end
 
-    def aggregate_data
-      @data_store.each_value do |value|
+    def aggregate_data(data_store)
+      data_store.each_value do |value|
         value[:data] = @method.call(value[:data])
       end
     end
 
-    def map_columns_and_rows
-      @column_map = Hash.new
-      @row_map    = Hash.new
+    def map_columns_and_rows(data_store)
+      column_map = Hash.new
+      row_map    = Hash.new
       col_i = row_i = 1
-      @data_store.each_value do |value|
-        if !@column_map.include? value[:column]
-          @column_map.store(value[:column], col_i) 
+      data_store.each_value do |value|
+        if !column_map.include? value[:column]
+          column_map.store(value[:column], col_i) 
           col_i += 1
         end
-        if !@row_map.include? value[:row]
-          @row_map.store(value[:row], row_i) 
+        if !row_map.include? value[:row]
+          row_map.store(value[:row], row_i) 
           row_i += 1
         end
       end
+      [column_map, row_map]
     end
 
-    def sort
-      sorted_columns = @column_map.keys.sort
-      sorted_rows    = @row_map.keys.sort
+    def sort(column_map, row_map)
+      sorted_columns = column_map.keys.sort
+      sorted_rows    = row_map.keys.sort
       sorted_columns.each_with_index do |column, index|
-        @column_map[column] = index + 1
+        column_map[column] = index + 1
       end
       sorted_rows.each_with_index do |row, index|
-        @row_map[row] = index + 1
+        row_map[row] = index + 1
       end
+      [sorted_columns, sorted_rows]
     end
 
-    def create_table
-      @pivoted_table = [[]]
-      @column_map.each do |key, value|
-        @pivoted_table[0][value] = key
+    def create_table(data_store, column_map, row_map)
+      pivoted_table = [[]]
+      column_map.each do |key, value|
+        pivoted_table[0][value] = key
       end
-      @row_map.each do |key, value|
-        @pivoted_table[value] = [key]
+      row_map.each do |key, value|
+        pivoted_table[value] = [key]
       end
-      @data_store.each_value do |value|
-        row    = @row_map[value[:row]]
-        column = @column_map[value[:column]]
-        @pivoted_table[row][column] = value[:data]
+      data_store.each_value do |value|
+        row    = row_map[value[:row]]
+        column = column_map[value[:column]]
+        pivoted_table[row][column] = value[:data]
       end
-      @pivoted_table[0][0] = @pivot_rows if @headers
-      @pivoted_table
+      pivoted_table[0][0] = @pivot_rows if @headers
+      pivoted_table
     end
 
-    def output_csv
+    def output_csv(pivoted_table)
       CSV.open(@output_path, "w") do |csv|
-        @pivoted_table.each do |row|
+        pivoted_table.each do |row|
           csv << row
         end
       end
@@ -118,14 +130,6 @@ module CsvPivot
   end # end class
 end
 
-=begin
-input = {:input_path => "/Users/mark.knutson/Documents/csv_pivot/spec/fixtures/license_server_record_history_by_regkey.csv", 
-                     :pivot_rows => "month",    # group by
-                     :pivot_columns => "limited_licensed_seats", # new headers
-                     :pivot_data => "registration_key",
-                     :output_file => "/Users/mark.knutson/Documents/csv_pivot/spec/fixtures/license_server_record_history_by_regkey_pivoted.csv",
-                     :sort => false}
-CsvPivot::PivotTable.new(input)
-=end
+
 
 

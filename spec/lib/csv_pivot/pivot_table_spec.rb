@@ -6,7 +6,7 @@ describe CsvPivot::PivotTable do
   describe '#pivot' do
     context 'Sum With Headers' do
 
-      let(:input) { {:input_path => "/Users/mark.knutson/Documents/csv_pivot/spec/fixtures/testcsv.csv", 
+      let(:input) { {:input_path => "csv_pivot/spec/fixtures/testcsv.csv", 
                      :pivot_rows => "date",    # group by
                      :pivot_columns => "name", # new headers
                      :pivot_data => "baz"} }
@@ -24,7 +24,7 @@ describe CsvPivot::PivotTable do
 
     context 'Without Headers' do
 
-      let(:input) { {:input_path => "/Users/mark.knutson/Documents/csv_pivot/spec/fixtures/testcsv_noheaders.csv",
+      let(:input) { {:input_path => "csv_pivot/spec/fixtures/testcsv_noheaders.csv",
                      :pivot_rows => 3,    # group by
                      :pivot_columns => 4, # new headers
                      :pivot_data => 2,
@@ -43,7 +43,7 @@ describe CsvPivot::PivotTable do
 
     context 'Sum With Headers and Sort' do
 
-      let(:input) { {:input_path => "/Users/mark.knutson/Documents/csv_pivot/spec/fixtures/testcsv.csv", 
+      let(:input) { {:input_path => "csv_pivot/spec/fixtures/testcsv.csv", 
                      :pivot_rows => "date",    # group by
                      :pivot_columns => "name", # new headers
                      :pivot_data => "baz",
