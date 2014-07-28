@@ -8,48 +8,40 @@ module CsvPivot
       :sort             => false,
       :sort_on          => 0, 
       :total_column     => false,
-      :total_row        => false,
-      :output_file      => nil
+      :total_row        => false
     }
 
     def initialize(opts = {})
+      p = Proc.new do |array|  # the default aggregation method: sum
+        array.map(&:to_i).reduce(0, :+)
+      end
       @opts = DEFAULT_OPTIONS.merge(opts)
       @input_path    = @opts[:input_path]
       @pivot_rows    = @opts[:pivot_rows]
       @pivot_columns = @opts[:pivot_columns]
       @pivot_data    = @opts[:pivot_data]
       @sort          = @opts[:sort]
-      @output_file   = @opts[:output_file]
       @headers       = @opts[:headers]
-      @method        = @opts[:aggregate_method]
-
-      p = Proc.new do |array|  # the default aggregation method: sum
-        array.map(&:to_i).reduce(0, :+)
-      end
-
-      @method      ||= p
-
+      @method        = @opts[:aggregate_method] || p
     end
 
     def work
       data_store = create_data_store
-      data_store = aggregate_data(data_store)
+      aggregate_data(data_store)
 
-      column_map, row_map = map_columns_and_rows
-      column_map, row_map = sort(column_map, row_map) if @sort
+      column_map, row_map = map_columns_and_rows(data_store)
+      sort(column_map, row_map) if @sort
 
       create_table(data_store, column_map, row_map)
-
-      output_csv() if @output_file
     end
 
     def pivot
       pivoted_table = work
     end
 
-    def to_csv
+    def pivot_to_csv(output_file)
       table = pivot
-      output_csv(table)
+      output_csv(table, output_file)
     end
 
     def create_data_store
@@ -99,7 +91,6 @@ module CsvPivot
       sorted_rows.each_with_index do |row, index|
         row_map[row] = index + 1
       end
-      [sorted_columns, sorted_rows]
     end
 
     def create_table(data_store, column_map, row_map)
@@ -116,11 +107,12 @@ module CsvPivot
         pivoted_table[row][column] = value[:data]
       end
       pivoted_table[0][0] = @pivot_rows if @headers
+      puts pivoted_table.inspect
       pivoted_table
     end
 
-    def output_csv(pivoted_table)
-      CSV.open(@output_path, "w") do |csv|
+    def output_csv(pivoted_table, output_file)
+      CSV.open(output_file, "w") do |csv|
         pivoted_table.each do |row|
           csv << row
         end
