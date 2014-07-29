@@ -17,6 +17,7 @@ module CsvPivot
       end
       @opts = DEFAULT_OPTIONS.merge(opts)
       @input_path    = @opts[:input_path]
+      @input_array   = @opts[:input_data]
       @pivot_rows    = @opts[:pivot_rows]
       @pivot_columns = @opts[:pivot_columns]
       @pivot_data    = @opts[:pivot_data]
@@ -25,8 +26,13 @@ module CsvPivot
       @method        = @opts[:aggregate_method] || p
     end
 
-    def work
-      data_store = create_data_store
+    def pivot
+      if @input_path
+        data_store = create_data_store_from_csv
+      else
+        data_store = create_data_store
+      end
+
       aggregate_data(data_store)
 
       column_map, row_map = map_columns_and_rows(data_store)
@@ -35,16 +41,38 @@ module CsvPivot
       create_table(data_store, column_map, row_map)
     end
 
-    def pivot
-      pivoted_table = work
-    end
-
     def pivot_to_csv(output_file)
-      table = pivot
-      output_csv(table, output_file)
+      pivot_table = pivot
+      output_csv(pivot_table, output_file)
     end
 
     def create_data_store
+      data_store = Hash.new
+      if @headers
+        rows = @input_array[0].index(@pivot_rows)   
+        cols = @input_array[0].index(@pivot_columns) 
+        data = @input_array[0].index(@pivot_data)  
+      else
+        rows = @pivot_rows
+        cols = @pivot_columns
+        data = @pivot_data
+      end
+
+      @input_array.each_with_index do |row, i|
+        if (@headers && i == 0) then next end
+        if data_store.include? "#{row[rows]}:#{row[cols]}" then
+          data_store["#{row[rows]}:#{row[cols]}"][:data].push(row[data])
+        else
+          data_store.store("#{row[rows]}:#{row[cols]}",
+                            {:row    => row[rows],
+                             :column => row[cols],
+                             :data   => [row[data]]} )
+        end
+      end
+      data_store
+    end
+
+    def create_data_store_from_csv
       data_store = Hash.new
       CSV.foreach(@input_path, :headers => @headers) do |row|
         if data_store.include? "#{row[@pivot_rows]}:#{row[@pivot_columns]}" then
@@ -107,7 +135,6 @@ module CsvPivot
         pivoted_table[row][column] = value[:data]
       end
       pivoted_table[0][0] = @pivot_rows if @headers
-      puts pivoted_table.inspect
       pivoted_table
     end
 
