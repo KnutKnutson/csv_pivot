@@ -191,6 +191,26 @@ describe CsvPivot::PivotTable do
       end
     end
 
+    context 'Sum With Headers and Totals Column and Row from csv' do
+      let(:input) { {:input_path => "spec/fixtures/testcsv.csv", 
+                     :pivot_rows => "date",    # group by
+                     :pivot_columns => "name", # new headers
+                     :pivot_data => "baz",
+                     :column_total => true,
+                     :row_total => true} }
+      let(:output) { CsvPivot::PivotTable.new(input).pivot }
+      let(:expected) { [ ["date","mark","bear","Total"],
+                         ["4/1/11",6,nil,6],
+                         ["5/15/14",6,12,18],
+                         ["4/7/12",nil,18,18],
+                         ["5/11/11",6,12,18],
+                         ["Total",18,42,60] ] }
+
+      it 'produces pivoted data' do
+        expect(output).to eq expected
+      end
+    end
+
   end # end describe '#pivot'
 
 end # end describe CsvPivot::PivotTable

@@ -7,8 +7,8 @@ module CsvPivot
       :headers          => true,
       :sort             => false,
       :sort_on          => 0, 
-      :total_column     => false,
-      :total_row        => false
+      :column_total     => false,
+      :row_total        => false
     }
 
     def initialize(opts = {})
@@ -23,6 +23,8 @@ module CsvPivot
       @pivot_data    = @opts[:pivot_data]
       @sort          = @opts[:sort]
       @headers       = @opts[:headers]
+      @column_total  = @opts[:column_total]
+      @row_total     = @opts[:row_total]
       @method        = @opts[:aggregate_method] || p
     end
 
@@ -135,6 +137,8 @@ module CsvPivot
         pivoted_table[row][column] = value[:data]
       end
       pivoted_table[0][0] = @pivot_rows if @headers
+      add_column_total(pivoted_table)   if @column_total
+      add_row_total(pivoted_table)      if @row_total
       pivoted_table
     end
 
@@ -146,9 +150,34 @@ module CsvPivot
       end
     end
 
+    def add_column_total(table)
+      i = table[0].length
+      table[0][i] = "Total"
+      table.each_with_index do |row, index|
+        next if index == 0
+        row[i] = row[1..i].map(&:to_f).reduce(0, :+)
+      end
+    end
+
+    def add_row_total(table)
+      i = table.length
+      table[i] = ["Total"]
+      table.each_with_index do |row, j|
+        next if j == 0 || j == i
+        row.each_with_index do |value, k|
+          next if k == 0 
+          if table[i][k] 
+            table[i][k] += value.to_f
+          else
+            table[i][k] = value.to_f
+          end
+        end
+      end
+      puts table.inspect
+    end
+
   end # end class
 end
-
 
 
 
