@@ -114,6 +114,7 @@ input = {
 ```
 
 which is equivalent to the following table:
+
 | nil     | mark    | bear  | Total |
 |---------|---------|-------|-------|
 | 4/1/11  | 2       | nil   | 2.0   |
