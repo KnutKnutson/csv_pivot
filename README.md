@@ -139,7 +139,7 @@ The proc looks like:
 p = Proc.new do |array|  
       array.map(&:to_i).reduce(0, :+)
     end
-    ```
+```
 #### Alternate aggregation method examples
 
 Below are some examples of alternate aggregation methods.  The csv_pivot gem makes no assumptions about the data passed to it.  Data from a csv is a string.  This will need to be cast to a numeric (int or float) before arithmetic can be performed on it.  Casting to int (or not) is the responsibility of the proc.  The default proc is sum, but note that it casts the members of the array to an int.  Below are some examples of writing your own procs.  Anything goes as long as it works on an array of values and returns a single value.
