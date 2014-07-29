@@ -79,8 +79,9 @@ which if printed to a csv row by row would be equivalent to:
 
 ###### Example 2
 
-A csv of the form:
+A csv of the form (no headers):
 
+|         |         |       |         |       |
 | --------|---------|-------|---------|-------|
 | 1       | 2       | 3     | 4/1/11  | mark  |
 | 4       | 5       | 6     | 5/15/14 | mark  | 
