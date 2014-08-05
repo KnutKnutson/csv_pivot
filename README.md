@@ -1,6 +1,5 @@
 # CsvPivot
 
-TODO: Write a better gem description (and actually turn into a gem)
 
 The CsvPivot gem takes a table in the form of an array of arrays, or a file path to a csv file.  It then creates a pivot table on the data from a specified column(s) and row(s) to pivot on.
 It returns an array of arrays, or can be given an output path to create a pivoted csv file.
@@ -22,11 +21,7 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write more usage instructions here
-
     require 'csv_pivot'
-
-Takes a hash of options.  
 
 The following are the args that must be specified:
 ```
@@ -58,14 +53,14 @@ assuming you have a csv that looks something like this:
 | 10      | 11      | 12    | 5/15/14 | bear  | 
 
 
-The output of the call 
+calling
 ```
 array_of_arrays = CsvPivot::PivotTable.new(input).pivot
 ```
-is:
-
+returns
+```
 [["date", "mark", "bear"], ["4/1/11", 6], ["5/15/14", 6, 12], ["4/7/12", nil, 18], ["5/11/11", 6, 12]]
-
+```
 which if printed to a csv row by row would be equivalent to:
 
 | date    | mark    | bear  |
@@ -126,11 +121,36 @@ which is equivalent to the following table:
 The last index of the Total row displays the sum of the Total column.
 
 #### Optional Arguments
-* :sort    => boolean # sorts columns and rows
-* :headers => boolean # input data has a header row (default true)
-* :aggregate_method => Proc # a proc that takes an array of values and returns desired output (e.g. average, max, min, sum, count, etc...)
-* :column_total => boolean # return total column (default false)
-* :row_total => boolean # return total row (default false)
+* :sort    => boolean 
+  # sorts columns and rows
+* :headers => boolean 
+  # input data has a header row (default true)
+* :aggregate_method => Proc 
+  # a proc that takes an array of values and returns desired output (e.g. average, max, min, sum, count, etc...)
+* :column_total => boolean 
+  # return total column (default false)
+* :row_total => boolean 
+  # return total row (default false)
+
+### Pivot to CSV
+Calling 
+```
+CsvPivot::PivotTable.new(input).pivot_to_csv(output_path)
+```
+will not return an array of arrays.  It will print your data to a csv file specified by output_path.
+###### example
+```
+output_path = "spec/fixtures/testcsv_pivoted.csv"
+
+input = {:input_path => "spec/fixtures/testcsv.csv", 
+         :pivot_rows => "date",   
+         :pivot_columns => "name", 
+         :pivot_data => "baz" } 
+
+CsvPivot::PivotTable.new(input).pivot_to_csv(output_path)
+File.exists? output_path 
+=> true
+```
 
 ### Aggregation Methods
 The default aggregation method, when no aggregate_method is specified, is sum.
