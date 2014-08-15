@@ -6,11 +6,9 @@ require 'csv_pivot/version'
 Gem::Specification.new do |spec|
   spec.name          = "csv_pivot"
   spec.version       = CsvPivot::VERSION
-  spec.authors       = ["TODO: Write your name"]
-  spec.email         = ["TODO: Write your email address"]
-  spec.summary       = %q{TODO: Write a short summary. Required.}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
-  spec.homepage      = ""
+  spec.authors       = ["Knut Knutson"]
+  spec.summary       = %q{Pivots an row major ordered array or csv file and returns an array or csv file.}
+  spec.homepage      = "https://github.com/KnutKnutson/csv_pivot"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
